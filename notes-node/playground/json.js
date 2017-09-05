@@ -6,7 +6,7 @@ const originalNote = {
 };
 const originalNoteString = JSON.stringify(originalNote);
 fs.writeFile('notes.json', originalNoteString, err => {
-  if(err) console.err('ERROR: Cannot write');
+  if(err) return console.err('ERROR: Cannot write');
   fs.readFile('notes.json', (err, data) => {
     note= JSON.parse(data);
     console.log(note.title);
