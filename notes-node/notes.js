@@ -2,46 +2,32 @@ console.log('Starting Notes');
 
 const fs = require('fs');
 
-const saveNotes = (notes, title, body) => {
+const saveNotes = (notes) => {
+  fs.writeFileSync('notes-data.json', JSON.stringify(notes));
+};
+
+const fetchNotes = () => {
+  try {
+    const data = fs.readFileSync('notes-data.json');
+    return JSON.parse(data);
+  } catch(err) {
+    console.error('notes-data.json not found');
+    return [];
+  }
+};
+
+const addNote = (title, body) => {
   const note = {
     title,
     body
   };
-  const duplicateNotes = notes.filter(val => val.title === note.title);
+  const notes = fetchNotes();
+  const duplicateNotes = notes.filter(val => val.title === title);
   if(duplicateNotes.length === 0) {
     notes.push(note);
-    fs.writeFile('notes-data.json', JSON.stringify(notes), err => {
-      if(err) return console.err('ERROR: cannot write file');
-      console.log(`${note.title} Added`);
-    });
-  } else {
-    console.log('Note title taken');
+    saveNotes(notes);
+    return note;
   }
-};
-
-const remove = (notes, title) => {
-  const newNotes = notes.filter(val => val.title !== title);
-  if(newNotes.length < notes.length) {
-    fs.writeFile('notes-data.json', JSON.stringify(newNotes), err => {
-      if(err) return console.err('ERROR: cannot write file');
-      console.log(`${title} Removed`);
-    });
-  } else {
-    console.log(`No note with title: ${title}; remove failed`);
-  }
-}
-
-const fetchAndAct = (action, ...info) => {
-  let notes = [];
-  fs.readFile('notes-data.json', (err, data) => {
-    if(err) console.error('ERROR: cannot read file');
-    else notes = JSON.parse(data);
-    action(notes, ...info);
-  });
-};
-
-const addNote = (title, body) => {
-  fetchAndAct(saveNotes, title, body);
 };
 
 const getAll = () => {
@@ -49,16 +35,29 @@ const getAll = () => {
 };
 
 const getNote = title => {
-
+  const notes = fetchNotes();
+  const matchedNotes = notes.filter(val => title === val.title);
+  return matchedNotes[0];
 };
 
 const removeNote = title => {
-  fetchAndAct(remove, title);
+  const notes = fetchNotes();
+  const filteredNotes = notes.filter((note) => note.title !== title);
+  saveNotes(filteredNotes);
+
+  return notes.length !== filteredNotes.length;
+};
+
+const logNote = (note) => {
+  console.log('---');
+  console.log(`Title: ${note.title}`);
+  console.log(`Body: ${note.body}`);
 };
 
 module.exports = {
   addNote,
   getAll,
   getNote,
-  removeNote
+  removeNote,
+  logNote
 }
